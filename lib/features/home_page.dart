@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_aula3/widgets/custom_text_field.dart';
+import 'package:flutter_application_aula3/app/model/tarefa_model.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -10,6 +11,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool isChecked = false;
+  final TextEditingController tituloController = TextEditingController();
+  final TextEditingController descricaoController = TextEditingController();
+  List<TarefaModel> tarefas = [];
 
   @override
   Widget build(BuildContext context) {
@@ -96,17 +100,81 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Column(
         children: [
-          CustomTextField(hintText: 'Titulo', labelText: 'Digite o título'),
+          CustomTextField(
+            hintText: 'Titulo',
+            labelText: 'Digite o título',
+            controller: tituloController,
+          ),
           CustomTextField(
             hintText: 'Descrição',
             labelText: 'Digite a descrição',
+            controller: descricaoController,
+          ),
+          SizedBox(
+            height: 500,
+            child: ListView.builder(
+              itemCount: tarefas.length,
+              itemBuilder: (context, index) {
+                final tarefa = TarefaModel(
+                  titulo: tarefas[index].titulo,
+                  descricao: tarefas[index].descricao,
+                );
+
+                return Dismissible(
+                  key: Key(tarefa.titulo + index.toString()),
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 20),
+                    child: const Icon(
+                      Icons.delete,
+                      color: Colors.white,
+                      size: 42,
+                    ),
+                  ),
+                  onDismissed: (direction) {
+                    _removeTarefa(index);
+                  },
+                  direction: DismissDirection.endToStart,
+                  child: ListTile(
+                    title: Text(tarefas[index].titulo),
+                    subtitle: Text(tarefas[index].descricao),
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: _addTarefa,
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  void _addTarefa() {
+    if (!tituloController.text.isEmpty && !descricaoController.text.isEmpty) {
+      setState(() {
+        tarefas.add(
+          TarefaModel(
+            titulo: tituloController.text,
+            descricao: descricaoController.text,
+          ),
+        );
+      });
+      tituloController.clear();
+      descricaoController.clear();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Voce Precisa preencher os campos')),
+      );
+    }
+  }
+
+  void _removeTarefa(int index) {
+    setState(() {
+      tarefas.removeAt(index);
+    });
   }
 }
